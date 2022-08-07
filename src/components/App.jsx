@@ -1,91 +1,65 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import ContactForm from './ContactForm/ContactForm';
 import ContactList from './ContactList/ContactList';
 import Filter from './Filter/Filter';
 import s from '../components/App.module.css';
 
-class App extends Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
+function App() {
+  const [contacts, setContacts] = useState(
+    JSON.parse(localStorage.getItem('contacts')) ?? []
+  );
+  const [filter, setFilter] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
+
+  const deleteContacts = id => {
+    return setContacts(prevContacts =>
+      prevContacts.filter(contact => contact.id !== id)
+    );
   };
 
-  deleteContacts = id => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== id),
-    }));
-  };
-
-  formSubmitHandler = ({ name, number }) => {
+  const formSubmitHandler = ({ name, number }) => {
     const todo = {
       id: nanoid(),
       name,
       number,
     };
-
-    this.repeatControlsContact(todo)
+    repeatControlsContact(todo)
       ? alert(`${todo.name} is already in contacts!!!`)
-      : this.setState(prevState => ({
-          contacts: [todo, ...prevState.contacts],
-        }));
+      : setContacts(prevContacts => [...prevContacts, todo]);
   };
 
-  changeFilter = e => {
-    this.setState({ filter: e.currentTarget.value });
+  const changeFilter = e => {
+    setFilter(e.target.value);
   };
 
-  getVisibleFilterList = () => {
-    const { contacts, filter } = this.state;
+  const getVisibleFilterList = () => {
     const normalizedFilter = filter.toLowerCase();
-    return contacts.filter(contacts =>
-      contacts.name.toLowerCase().includes(normalizedFilter)
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(normalizedFilter)
     );
   };
 
-  repeatControlsContact = element => {
-    const { contacts } = this.state;
+  const repeatControlsContact = element => {
     return contacts.find(
       contact => contact.name.toLowerCase() === element.name.toLowerCase()
     );
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
-
-  componentDidMount() {
-    const contacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(contacts);
-
-    if (parsedContacts) {
-      this.setState({ contacts: parsedContacts });
-    }
-  }
-
-  render() {
-    const visibleFilterList = this.getVisibleFilterList();
-
-    return (
-      <div className={s.decor}>
-        <h1>Phonebook</h1>
-        <ContactForm onSubmit={this.formSubmitHandler} />
-        <h2>Contacts</h2>
-        <Filter filter={this.state.filter} changeFilter={this.changeFilter} />
-        <ContactList
-          contact={visibleFilterList}
-          onDeleteContact={this.deleteContacts}
-        />
-      </div>
-    );
-  }
+  return (
+    <div className={s.decor}>
+      <h1>Phonebook</h1>
+      <ContactForm onSubmit={formSubmitHandler} />
+      <h2>Contacts</h2>
+      <Filter filter={filter} changeFilter={changeFilter} />
+      <ContactList
+        contact={getVisibleFilterList()}
+        onDeleteContact={deleteContacts}
+      />
+    </div>
+  );
 }
-
 export default App;

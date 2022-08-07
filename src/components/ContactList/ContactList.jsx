@@ -5,11 +5,15 @@ import { nanoid } from 'nanoid';
 const ContactList = ({ contact, onDeleteContact }) => {
   return (
     <ul className={s.list}>
-      {contact.map(({name, number, id}) => (
+      {contact.map(({ name, number, id }) => (
         <li key={nanoid()} className={s.item}>
-          <span className={s.span} >{name}:</span>
+          <span className={s.span}>{name}:</span>
           <span>{number}</span>
-          <button  className={s.btn} type="button" onClick={() => onDeleteContact(id)}>
+          <button
+            className={s.btn}
+            type="button"
+            onClick={() => onDeleteContact(id)}
+          >
             Delete
           </button>
         </li>
